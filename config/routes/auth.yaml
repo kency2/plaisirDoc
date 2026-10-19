@@ -1,0 +1,11 @@
+auth_login:
+  path: /auth/login
+  methods: [POST]
+
+auth_refresh:
+  path: /auth/refresh
+  methods: [POST]
+
+auth_logout:
+  path: /auth/logout
+  methods: [POST]

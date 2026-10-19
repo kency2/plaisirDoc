@@ -1,0 +1,15 @@
+common:
+    greeting: "Hello %firstName%,"
+    signature: "See you soon,\nThe Plaisir d'Oc team"
+    footer: "This e-mail was sent to you by Plaisir d'Oc —"
+    team_note: "Message from our team:"
+
+password_reset:
+    subject: "Reset your password"
+    body: "You asked to reset the password of your Plaisir d'Oc account. The link below is valid for %minutes% minutes.\n\nIf you did not make this request, you can ignore this e-mail: your password will not change."
+    cta: "Choose a new password"
+
+email_verification:
+    subject: "Your verification code: %code%"
+    body: "Welcome to Plaisir d'Oc! To activate your account, enter this verification code. It is valid for %minutes% minutes."
+    ignore: "If you did not create an account, you can ignore this e-mail."
