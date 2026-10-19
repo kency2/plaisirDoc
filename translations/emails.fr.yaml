@@ -1,0 +1,15 @@
+common:
+    greeting: "Bonjour %firstName%,"
+    signature: "À très vite,\nL'équipe Plaisir d'Oc"
+    footer: "Cet e-mail vous a été envoyé par Plaisir d'Oc —"
+    team_note: "Message de l'équipe :"
+
+password_reset:
+    subject: "Réinitialisation de votre mot de passe"
+    body: "Vous avez demandé à réinitialiser le mot de passe de votre compte Plaisir d'Oc. Le lien ci-dessous est valable %minutes% minutes.\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail : votre mot de passe reste inchangé."
+    cta: "Choisir un nouveau mot de passe"
+
+email_verification:
+    subject: "Votre code de vérification : %code%"
+    body: "Bienvenue sur Plaisir d'Oc ! Pour activer votre compte, saisissez ce code de vérification. Il est valable %minutes% minutes."
+    ignore: "Si vous n'avez pas créé de compte, ignorez cet e-mail."

@@ -3,14 +3,19 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\ApiResource\ChangePasswordInput;
 use App\ApiResource\ForgotPasswordInput;
 use App\ApiResource\RegisterInput;
 use App\ApiResource\ResendVerificationInput;
 use App\ApiResource\ResetPasswordInput;
 use App\ApiResource\VerifyEmailInput;
 use App\Enum\Role;
+use App\State\Processor\AnonymizeUserProcessor;
+use App\State\Processor\ChangePasswordProcessor;
 use App\State\Processor\ForgotPasswordProcessor;
 use App\State\Processor\RegisterUserProcessor;
 use App\Repository\UserRepository;
@@ -24,7 +29,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -33,7 +37,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ORM\Table(name: 'users')]
-#[HasLifecycleCallbacks]
+#[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     shortName: 'Utilisateurs',
     description: 'Gestion des utilisateurs',
@@ -60,8 +64,8 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Post(
             uriTemplate: '/auth/email/resend',
             status: 202,
+            description: 'Renvoyer le code de verification par mail',
             name: 'email_resend',
-            description: 'Renvoyer un mail',
             input: ResendVerificationInput::class,
             output: false,
             security: null,
@@ -70,6 +74,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Post(
             uriTemplate: '/auth/password/forgot',
             name: 'password_forgot',
+            description: 'Envoyer un mail de réinitalisation de mot de passe',
             status: 202,
             input: ForgotPasswordInput::class,
             output: false,
@@ -79,6 +84,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Post(
             uriTemplate: '/auth/password/reset',
             name: 'password_reset',
+            description: 'Mise à jour du mot de passe',
             status: 204,
             input: ResetPasswordInput::class,
             output: false,
@@ -88,10 +94,40 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(
             uriTemplate: '/me',
             name: 'me_get',
-            security: 'is_granted(IS_AUTHENTICATED_FULLY)',
-            provider: CurrentUserProvider::class
+            description: 'information sur l\'utilisateur connecté',
+            security: 'is_granted("IS_AUTHENTICATED_FULLY")',
+            provider: CurrentUserProvider::class,
+        ),
+        new Patch(
+            uriTemplate: '/me',
+            name: 'me_patch',
+            description: 'Mise à jour de son profil',
+            read: true,
+            provider: CurrentUserProvider::class,
+            denormalizationContext: ['groups' => ['user:write']],
+            security: "is_granted('IS_AUTHENTICATED_FULLY')"
+        ),
+        new Post(
+            uriTemplate: '/me/password',
+            name: 'me_password',
+            description: 'Modifier son mot de passe depuis son profil',
+            status: 204,
+            input: ChangePasswordInput::class,
+            output: false,
+            processor: ChangePasswordProcessor::class,
+            security: 'is_granted("IS_AUTHENTICATED_FULLY")'
+        ),
+        new Delete(
+            uriTemplate: '/me',
+            name: 'me_delete',
+            description: 'Supprimer son compte',
+            read: true,
+            security: 'is_granted("IS_AUTHENTICATED_FULLY")',
+            provider: CurrentUserProvider::class,
+            processor: AnonymizeUserProcessor::class
         )
-    ]
+    ],
+    normalizationContext: ['groups' => ['user:read']]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -456,7 +492,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function isEmailVerified(): bool
     {
-        return $this->emailVerifiedAt !== null;
+        return null !== $this->emailVerifiedAt;
     }
 
     /**

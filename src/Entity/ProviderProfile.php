@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProviderProfileRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ORM\Table(name: 'provider_profiles')]
 class ProviderProfile
 {
 

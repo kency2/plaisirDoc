@@ -74,7 +74,7 @@ final class EmailVerification
 
   public function verify(User $user, string $code): void
   {
-    if ($user->isEmailVerified()) {
+    if (!$user->isEmailVerified()) {
       return;
     }
 

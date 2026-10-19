@@ -1,0 +1,3 @@
+# Authentication messages
+auth:
+    email_not_verified: "Your e-mail address is not verified yet: enter the code we sent you by e-mail."

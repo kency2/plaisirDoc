@@ -1,0 +1,3 @@
+# Messages d'authentification
+auth:
+    email_not_verified: "Votre adresse e-mail n'est pas encore vérifiée : saisissez le code reçu par e-mail."
