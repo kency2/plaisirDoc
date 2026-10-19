@@ -1,0 +1,14 @@
+{# Gabarit générique : un paragraphe `<clé>.body` + le bouton `<clé>.cta` (cf. EmailSender).
+   `note` (facultatif) : message libre de l'équipe, ex. motif d'un refus de modération. #}
+{% extends 'emails/layout.html.twig' %}
+
+{% block content %}
+  <p style="margin:0;">{{ (key ~ '.body')|trans(params, 'emails')|nl2br }}</p>
+
+  {% if note|default %}
+    <p style="margin:16px 0 0;padding:12px 16px;background:#f8f5f0;border-left:3px solid #7a3e2e;">
+      <strong>{{ 'common.team_note'|trans({}, 'emails') }}</strong><br>
+      {{ note|nl2br }}
+    </p>
+  {% endif %}
+{% endblock %}
