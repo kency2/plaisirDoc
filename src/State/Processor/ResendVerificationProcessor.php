@@ -20,7 +20,7 @@ class ResendVerificationProcessor implements ProcessorInterface
   public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
   {
     $user = $this->userRepository->findOneBy(['email' => $data->email]);
-    if($user instanceof User && $user->getDeletedAt() !== null){
+    if($user instanceof User && $user->getDeletedAt() === null){
       $this->emailVerification->resendCode($user);
     }      
 

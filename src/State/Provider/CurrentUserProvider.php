@@ -14,7 +14,7 @@ class CurrentUserProvider implements ProviderInterface
   {
   }
 
-  public function provide(Operation $operation, array $uriVariables = [], array $context = []): User
+  public function provide(Operation $operation, array $uriVariables = [], array $context = []): ?User
   {
     $user = $this->security->getUser();
 

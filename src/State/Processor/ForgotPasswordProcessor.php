@@ -38,7 +38,7 @@ class ForgotPasswordProcessor implements ProcessorInterface
   {
 
     $user = $this->userRepository->findOneBy(["email" => $data->email]);
-    if (!$user instanceof User && null !== $user->getDeletedAt()) {
+    if (!$user instanceof User || null !== $user->getDeletedAt()) {
       return null;
     }
 
