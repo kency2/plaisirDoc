@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Exception\ApiException;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -52,6 +53,50 @@ final class EmailVerification
         'minutes' => self::CODE_TTL_MINUTES,
       ]
     );
+  }
+
+  /**
+   * Renvoie un code, sauf si l'adresse est déjà vérifiée ou si le dernier envoi est trop récent.
+   */
+  public function resendCode(User $user): void
+  {
+    if ($user->isEmailVerified()) {
+      return;
+    }
+
+    $sentAt = $user->getEmailVerificationSentAt();
+    if ($sentAt !== null && $sentAt > new DateTimeImmutable(sprintf('-%d seconds', self::RESEND_DELAY_SECONDS))) {
+      return;
+    }
+
+    $this->sendCode($user);
+  }
+
+  public function verify(User $user, string $code): void
+  {
+    if ($user->isEmailVerified()) {
+      return;
+    }
+
+    $codeHash = $user->getEmailVerificationCodeHash();
+    $expiresAt = $user->getEmailVerificationExpiresAt();
+    if ($codeHash === null || $expiresAt === null || $expiresAt < new DateTimeImmutable()) {
+      throw ApiException::unprocessable('email_verification.expired');
+    }
+
+    if ($user->getEmailVerificationAttempts() >= self::MAX_ATTEMPTS) {
+      throw ApiException::unprocessable('email_verification.too_many_attempts');
+    }
+
+    if (!hash_equals($codeHash, $this->hash($user, $code))) {
+      $user->recordFailedEmailVerification();
+      $this->em->flush();
+
+      throw ApiException::unprocessable('email_verification.invalid_code');
+    }
+
+    $user->markEmailVerified();
+    $this->em->flush();
   }
 
   private function hash(User $user, string $code): string

@@ -5,10 +5,19 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
+use App\ApiResource\ForgotPasswordInput;
 use App\ApiResource\RegisterInput;
+use App\ApiResource\ResendVerificationInput;
+use App\ApiResource\ResetPasswordInput;
+use App\ApiResource\VerifyEmailInput;
 use App\Enum\Role;
+use App\State\Processor\ForgotPasswordProcessor;
 use App\State\Processor\RegisterUserProcessor;
 use App\Repository\UserRepository;
+use App\State\Processor\ResendVerificationProcessor;
+use App\State\Processor\ResetPasswordProcessor;
+use App\State\Processor\VerifyEmailProcessor;
+use App\State\Provider\CurrentUserProvider;
 use App\Trait\DateTrait;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -38,11 +47,49 @@ use Symfony\Component\Validator\Constraints as Assert;
             status: 201,
             security: null
         ),
+        new Post(
+            uriTemplate: '/auth/email/verify',
+            status: 204,
+            name: 'email_verify',
+            description: 'Activation du compte : code à 6 chiffres envoyé par email à l\'inscription',
+            input: VerifyEmailInput::class,
+            output: false,
+            processor: VerifyEmailProcessor::class,
+            security: null
+        ),
+        new Post(
+            uriTemplate: '/auth/email/resend',
+            status: 202,
+            name: 'email_resend',
+            description: 'Renvoyer un mail',
+            input: ResendVerificationInput::class,
+            output: false,
+            security: null,
+            processor: ResendVerificationProcessor::class
+        ),
+        new Post(
+            uriTemplate: '/auth/password/forgot',
+            name: 'password_forgot',
+            status: 202,
+            input: ForgotPasswordInput::class,
+            output: false,
+            processor: ForgotPasswordProcessor::class,
+            security: null
+        ),
+        new Post(
+            uriTemplate: '/auth/password/reset',
+            name: 'password_reset',
+            status: 204,
+            input: ResetPasswordInput::class,
+            output: false,
+            security: null,
+            processor: ResetPasswordProcessor::class
+        ),
         new Get(
             uriTemplate: '/me',
             name: 'me_get',
             security: 'is_granted(IS_AUTHENTICATED_FULLY)',
-            // provider: CurrentUserProvider::class
+            provider: CurrentUserProvider::class
         )
     ]
 )]
@@ -234,6 +281,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->emailVerifiedAt;
     }
 
+    public function markEmailVerified(): static
+    {
+        $this->emailVerifiedAt = new DateTimeImmutable();
+        $this->emailVerificationCodeHash = null;
+        $this->emailVerificationExpiresAt = null;
+        $this->emailVerificationAttempts = 0;
+
+        return $this;
+    }
+
     public function setEmailVerifiedAt(?DateTimeImmutable $emailVerifiedAt): static
     {
         $this->emailVerifiedAt = $emailVerifiedAt;
@@ -381,6 +438,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getEmailVerificationAttempts(): ?int
     {
         return $this->emailVerificationAttempts;
+    }
+
+    public function recordFailedEmailVerification(): static
+    {
+        ++$this->emailVerificationAttempts;
+
+        return $this;
     }
 
     public function setEmailVerificationAttempts(int $emailVerificationAttempts): static

@@ -35,7 +35,7 @@ final class EmailSender
   public function send(User $recipiant, string $key, array $params = [], ?string $link = null, array $context = []): void
   {
     //  Compte anonymisé: adresse factice en '.invalid', rien à envoyer
-    if ($recipiant->getDeletedAt() === null) {
+    if ($recipiant->getDeletedAt() !== null) {
       return;
     }
 
