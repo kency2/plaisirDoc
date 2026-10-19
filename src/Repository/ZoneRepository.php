@@ -36,7 +36,7 @@ class ZoneRepository extends ServiceEntityRepository
 
         foreach ($types as $key => $type) {
             $rows = $this->getEntityManager()->createQueryBuilder()
-                ->select('IDENTITY(o.zone AS zoneId', 'COUNT(o.id) AS total')
+                ->select('IDENTITY(o.zone) AS zoneId', 'COUNT(o.id) AS total')
                 ->from($type, 'o')
                 ->where('o.status = :status')
                 ->setParameter('status', ListingStatus::Published)
